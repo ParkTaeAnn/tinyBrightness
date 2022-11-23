@@ -125,6 +125,13 @@ namespace tinyBrightness.SettingsPages
             SettingsController.SaveSettings(data);
         }
 
+        private void AutoConnectBrightnessSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            IniData data = SettingsController.GetCurrentSettings();
+            data["AutoConnectBrightness"]["AutoConnectBrightness"] = (((Slider)sender).Value / 100).ToString(CultureInfo.InvariantCulture);
+            SettingsController.SaveSettings(data);
+        }
+
         private void AutoBrightnessSwitch_Toggled(object sender, RoutedEventArgs e)
         {
             IniData data = SettingsController.GetCurrentSettings();
@@ -139,6 +146,36 @@ namespace tinyBrightness.SettingsPages
                 data["AutoBrightness"]["Enabled"] = "0";
                 ((MainWindow)Owner).CheckForSunriset.Stop();
             }
+
+            SettingsController.SaveSettings(data);
+        }
+
+        private void AutoConnectBrightnessSwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            IniData data = SettingsController.GetCurrentSettings();
+
+            if (AutoConnectBrightnessSwitch.IsOn)
+            {
+                data["AutoConnectBrightness"]["Enabled"] = "1";
+                ((MainWindow)Owner).CheckForAutoConnectBrightness.Start();
+            }
+            else
+            {
+                data["AutoConnectBrightness"]["Enabled"] = "0";
+                ((MainWindow)Owner).CheckForAutoConnectBrightness.Stop();
+            }
+
+            SettingsController.SaveSettings(data);
+        }
+
+        private void AutoConnectBrightnessModelNameTextBox_ValueChanged(object sender, RoutedEventArgs e)
+        {
+            IniData data = SettingsController.GetCurrentSettings();
+
+            if (AutoConnectBrightnessModelNameTextBox.Text != null)
+                data["AutoConnectBrightness"]["AutoConnectBrightnessModel"] = AutoConnectBrightnessModelNameTextBox.Text;
+            else
+                data["AutoConnectBrightness"]["AutoConnectBrightnessModel"] = "ALLS";
 
             SettingsController.SaveSettings(data);
         }
@@ -180,6 +217,19 @@ namespace tinyBrightness.SettingsPages
                 AstroSunsetSlider.Value = AstroSunsetBrightnessValue * 100;
             else
                 AstroSunsetSlider.Value = 10;
+
+            if (data["AutoConnectBrightness"]["Enabled"] == "1")
+                AutoConnectBrightnessSwitch.IsOn = true;
+
+            if (double.TryParse(data["AutoConnectBrightness"]["AutoConnectBrightness"], NumberStyles.Any, CultureInfo.InvariantCulture, out double AutoConnectBrightnessValue))
+                AutoConnectBrightnessSlider.Value = AutoConnectBrightnessValue * 100;
+            else
+                AutoConnectBrightnessSlider.Value = 50;
+
+            if (data["AutoConnectBrightness"]["AutoConnectBrightnessModel"] != null)
+                AutoConnectBrightnessModelNameTextBox.Text = data["AutoConnectBrightness"]["AutoConnectBrightnessModel"];
+            else
+                AutoConnectBrightnessModelNameTextBox.Text = "ALLS";
         }
     }
 }

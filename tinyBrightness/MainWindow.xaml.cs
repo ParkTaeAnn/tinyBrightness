@@ -16,6 +16,9 @@ using System.Windows.Media;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
+using System.Reflection;
+using Application = System.Windows.Application;
+using System.Globalization;
 
 namespace tinyBrightness
 {
@@ -121,7 +124,8 @@ namespace tinyBrightness
                 HotkeyPopupWindow.dwMaximumBrightness = MonExtems.Max;
                 HotkeyPopupWindow.dwCurrentBrightness = MonExtems.Current;
                 HotkeyPopupWindow.PercentText.Text = (CurrentBrightness * 100).ToString();
-            } catch { }
+            }
+            catch { }
             HotkeyPopupWindow.Show();
             HotkeyPopupWindow.ShowMe(data["Misc"]["HotkeyPopupPosition"]);
         }
@@ -163,7 +167,7 @@ namespace tinyBrightness
 
                 string Name = screen.DeviceFriendlyName();
 
-                if (String.IsNullOrEmpty(Name))
+                if (string.IsNullOrEmpty(Name))
                 {
                     Name = "Generic Monitor";
                 }
@@ -214,9 +218,9 @@ namespace tinyBrightness
 
             Keys keys = new Keys();
 
-            foreach(string Element in HotkeyArray)
+            foreach (string Element in HotkeyArray)
             {
-                switch(Element)
+                switch (Element)
                 {
                     case "Ctrl":
                         keys.Modifiers |= ModifierKeys.Control;
@@ -280,7 +284,7 @@ namespace tinyBrightness
             try
             {
                 double StepDouble = (double)StepSize / 100;
-                
+
                 DisplayConfiguration.PHYSICAL_MONITOR Handle = DisplayConfiguration.GetPhysicalMonitors(DisplayConfiguration.GetCurrentMonitor())[0];
                 /*Task.Run(() => { try { DisplayConfiguration.SetBrightnessOffset(Handle, IsUp ? StepDouble : -StepDouble); } catch { } });*/
 
@@ -344,7 +348,12 @@ namespace tinyBrightness
             if (data["AutoBrightness"]["Enabled"] == "1")
                 CheckForSunriset.Start();
 
+            //AutoConnectBrightness
+            if (data["AutoConnectBrightness"]["Enabled"] == "1")
+                CheckForAutoConnectBrightness.Start();
+
             SetupAutoBrightnessTimer();
+            SetupAutoConnectBrightnessTimer();
 
             TrayIcon.TrayBalloonTipClicked += (senderB, eB) => new Update().Window_Loaded();
         }
@@ -360,7 +369,7 @@ namespace tinyBrightness
                 if (IsAvailabe)
                 {
                     TrayIcon.ShowBalloonTip("New Version is Available: " + UpdContr.NewVersionString, UpdContr.Description + " Click here to see more.", new Icon(Properties.Resources.updateIcon, new System.Drawing.Size(Convert.ToInt32(40 * factor), Convert.ToInt32(40 * factor))), true);
-                } 
+                }
                 else if (!IsAvailabe && IsManual)
                 {
                     TrayIcon.ShowBalloonTip("No Updates Available", "You are using latest version.", new Icon(Properties.Resources.updateIcon, new System.Drawing.Size(Convert.ToInt32(40 * factor), Convert.ToInt32(40 * factor))), true);
@@ -419,11 +428,13 @@ namespace tinyBrightness
 
         private void UpdateMonitors_Click(object sender, RoutedEventArgs e)
         {
-            UpdateMonitorList();
-            Set_Initial_Brightness();
-            SetWindowPosition();
-            Show();
-            Activate();
+            System.Diagnostics.Process.Start(Assembly.GetEntryAssembly().Location);
+            Application.Current.Shutdown();
+            //UpdateMonitorList();
+            //Set_Initial_Brightness();
+            //SetWindowPosition();
+            //Show();
+            //Activate();
         }
 
         private void Settings_Click(object sender, RoutedEventArgs e)
@@ -518,6 +529,64 @@ namespace tinyBrightness
             }
         }
 
+        #endregion
+
+        #region AutoConnectBrightness
+
+        private void AutoConnectOnPowerChange(object s, PowerModeChangedEventArgs e)
+        {
+            IniData data = SettingsController.GetCurrentSettings();
+
+            switch (e.Mode)
+            {
+                case PowerModes.Resume:
+                    if (data["AutoConnectBrightness"]["Enabled"] == "1")
+                    {
+                        CheckForAutoConnectBrightness.Start();
+                        Task.Run(() =>
+                        {
+                            System.Threading.Thread.Sleep(4000);
+                            SetAutoConnectBrightness(1);
+                        });
+                    }
+                    break;
+                case PowerModes.Suspend:
+                    CheckForAutoConnectBrightness.Stop();
+                    break;
+            }
+        }
+
+        public DispatcherTimer CheckForAutoConnectBrightness = new DispatcherTimer()
+        {
+            Interval = new TimeSpan(0, 0, 10)
+        };
+
+        public void SetupAutoConnectBrightnessTimer()
+        {
+            SystemEvents.PowerModeChanged += AutoConnectOnPowerChange;
+            CheckForAutoConnectBrightness.Tick += (sender, e) =>
+            {
+                Task.Run(() => SetAutoConnectBrightness(0));
+            };
+        }
+
+        private void SetAutoConnectBrightness(int Mode)
+        {
+            foreach (MONITOR mon in MonitorList)
+            {
+                try
+                {
+                    string chkModel = AutoBrightnessSettings.GetAutoConnectModel();
+                    double chkBrightness = AutoBrightnessSettings.GetAutoConnectBrightness();
+                    if (DisplayConfiguration.GetMonitorBrightness(mon.Handle) != chkBrightness && (mon.name == chkModel || "ALLS" == chkModel))
+                    {
+                        DisplayConfiguration.SetMonitorBrightness(mon.Handle, chkBrightness, mon.Min, mon.Max);
+                        System.Threading.Thread.Sleep(500);
+                    }
+                }
+                catch { }
+            }
+        }
         #endregion
     }
 }

@@ -14,26 +14,26 @@ namespace tinyBrightness
         {
             IniData data = SettingsController.GetCurrentSettings();
             if (double.TryParse(data["AutoBrightness"]["Lat"], NumberStyles.Any, CultureInfo.InvariantCulture, out double Lat))
-                return Lat; 
-            else 
+                return Lat;
+            else
                 return 0;
         }
 
         public static double GetLon()
         {
             IniData data = SettingsController.GetCurrentSettings();
-            if (double.TryParse(data["AutoBrightness"]["Lon"], NumberStyles.Any, CultureInfo.InvariantCulture, out double Lon)) 
+            if (double.TryParse(data["AutoBrightness"]["Lon"], NumberStyles.Any, CultureInfo.InvariantCulture, out double Lon))
                 return Lon;
-            else 
+            else
                 return 0;
         }
 
         public static double GetSunriseBrightness()
         {
             IniData data = SettingsController.GetCurrentSettings();
-            if (double.TryParse(data["AutoBrightness"]["SunriseBrightness"], NumberStyles.Any, CultureInfo.InvariantCulture, out double SunriseBrightness)) 
+            if (double.TryParse(data["AutoBrightness"]["SunriseBrightness"], NumberStyles.Any, CultureInfo.InvariantCulture, out double SunriseBrightness))
                 return SunriseBrightness;
-            else 
+            else
                 return 0.9;
         }
 
@@ -62,6 +62,24 @@ namespace tinyBrightness
                 return AstroSunsetBrightness;
             else
                 return 0.1;
+        }
+
+        public static double GetAutoConnectBrightness()
+        {
+            IniData data = SettingsController.GetCurrentSettings();
+            if (double.TryParse(data["AutoConnectBrightness"]["AutoConnectBrightness"], NumberStyles.Any, CultureInfo.InvariantCulture, out double AutoConnectBrightnessValue))
+                return AutoConnectBrightnessValue;
+            else
+                return 0.1;
+        }
+
+        public static string GetAutoConnectModel()
+        {
+            IniData data = SettingsController.GetCurrentSettings();
+            if (data["AutoConnectBrightness"]["AutoConnectBrightnessModel"] != null)
+                return data["AutoConnectBrightness"]["AutoConnectBrightnessModel"];
+            else
+                return "ALLS";
         }
     }
 }
