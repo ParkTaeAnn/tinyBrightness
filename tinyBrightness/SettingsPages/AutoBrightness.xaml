@@ -2,8 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:tinyBrightness.SettingsPages"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       mc:Ignorable="d"
       xmlns:ui="http://schemas.modernwpf.com/2019"
       Title="AutoBrightness"
@@ -57,6 +56,19 @@
                     <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top"
                         Text="{Binding Value, ElementName=AstroSunsetSlider, Mode=OneWay}" />
                 </Grid>
+                <TextBlock Style="{StaticResource TitleTextBlockStyle}">Auto Connect Brightness</TextBlock>
+                <ui:ToggleSwitch
+                    x:Name="AutoConnectBrightnessSwitch"
+                    OffContent="Off"
+                    OnContent="On"
+                    Header="Enable Auto Connect Brightness"
+                    Toggled="AutoConnectBrightnessSwitch_Toggled"/>
+                <Grid>
+                    <Slider IsSnapToTickEnabled="True" x:Name="AutoConnectBrightnessSlider" ValueChanged="AutoConnectBrightnessSlider_ValueChanged" ui:ControlHelper.Header="Auto Connect Brightness" IsMoveToPointEnabled="True" AutoToolTipPlacement="TopLeft" Maximum="100" TickFrequency="1"/>
+                    <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Text="{Binding Value, ElementName=AutoConnectBrightnessSlider, Mode=OneWay}" />
+                </Grid>
+                <TextBox ui:ControlHelper.Header="Auto Connect Brightness Model Name:" x:Name="AutoConnectBrightnessModelNameTextBox" TextChanged="AutoConnectBrightnessModelNameTextBox_ValueChanged" FontSize="14" />
             </ui:SimpleStackPanel>
         </ScrollViewer>
     </Grid>
